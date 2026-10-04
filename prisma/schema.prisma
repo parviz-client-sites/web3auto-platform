@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  walletAddress String   @unique
+  username      String?
+  plan          String   @default("starter")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  bots          Bot[]
+  transactions  Transaction[]
+  subscriptions Subscription[]
+  
+  @@index([walletAddress])
+}
+
+model Bot {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  strategy    String
+  chain       String
+  parameters  String
+  status      String   @default("inactive")
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id])
+  jobs        Job[]
+  performances BotPerformance[]
+  
+  @@index([userId])
+}
+
+model Job {
+  id          String   @id @default(uuid())
+  botId       String
+  type        String
+  status      String   @default("pending")
+  result      String?
+  error       String?
+  scheduledAt DateTime
+  executedAt  DateTime?
+  createdAt   DateTime @default(now())
+  
+  bot         Bot      @relation(fields: [botId], references: [id])
+  
+  @@index([botId])
+  @@index([status])
+}
+
+model BotPerformance {
+  id          String   @id @default(uuid())
+  botId       String
+  timestamp   DateTime @default(now())
+  profit      Float
+  volume      Float
+  gasUsed     Float
+  trades      Int      @default(0)
+  
+  bot         Bot      @relation(fields: [botId], references: [id])
+  
+  @@index([botId])
+  @@index([timestamp])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String
+  amount      Float
+  currency    String
+  status      String   @default("pending")
+  txHash      String?
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+}
+
+model Subscription {
+  id          String   @id @default(uuid())
+  userId      String
+  plan        String
+  status      String   @default("active")
+  startDate   DateTime @default(now())
+  endDate     DateTime
+  amount      Float
+  currency    String   @default("USD")
+  
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+}
