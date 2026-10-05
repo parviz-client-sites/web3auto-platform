@@ -1,0 +1,17 @@
+'use client';
+
+import { useAccount } from 'wagmi';
+import { ConnectButton as RainbowConnectButton } from '@rainbow-me/rainbowkit';
+
+export default function SafeConnectButton() {
+  try {
+    // تلاش برای خواندن وضعیت اکانت؛ اگر WagmiConfig نباشد اینجا خطا می‌دهد
+    const { isConnected } = useAccount();
+    
+    // اگر به اینجا رسید یعنی WagmiConfig وجود دارد
+    return <RainbowConnectButton />;
+  } catch (error) {
+    // اگر WagmiConfig نباشد، هیچ چیزی رندر نکن تا بیلد خراب نشود
+    return null;
+  }
+}
